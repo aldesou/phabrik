@@ -36,6 +36,12 @@ type frameReadConfig struct {
 	CheckFrameBodyCRC   bool
 }
 
+// Public API
+type FrameReadConfig struct {
+	CheckFrameHeaderCRC bool
+	CheckFrameBodyCRC   bool
+}
+
 func nextFrame(r io.Reader, config frameReadConfig) (*frameheader, []byte, error) {
 	header := frameheader{}
 	err := binary.Read(r, binary.LittleEndian, &header)
@@ -80,6 +86,13 @@ func nextFrame(r io.Reader, config frameReadConfig) (*frameheader, []byte, error
 var crc8table = crc8.MakeTable(crc8.CRC8)
 
 type frameWriteConfig struct {
+	SecurityProviderMask securityProvider
+	FrameHeaderCRC       bool
+	FrameBodyCRC         bool
+}
+
+// Public API
+type FrameWriteConfig struct {
 	SecurityProviderMask securityProvider
 	FrameHeaderCRC       bool
 	FrameBodyCRC         bool

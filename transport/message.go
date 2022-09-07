@@ -56,6 +56,35 @@ func writeMessageWithFrame(w io.Writer, message *Message, config frameWriteConfi
 	return writeFrame(w, headerLen, msg, config)
 }
 
+// Public API
+func MessageHeaderAndBodyToFrame(msg ByteArrayMessage, config FrameWriteConfig) (*bytes.Buffer, error) {
+	frame := new(bytes.Buffer)
+	err := writeMessageWithFrame(frame,
+		&Message{
+			Headers: msg.Headers,
+			Body:    msg.Body,
+		},
+		frameWriteConfig{
+			FrameHeaderCRC: config.FrameHeaderCRC,
+			FrameBodyCRC:   config.FrameBodyCRC,
+		})
+	return frame, err
+}
+
+// Public API
+func MessageHeaderAndBodyFromFrame(frame *bytes.Buffer, config FrameReadConfig) (*ByteArrayMessage, error) {
+	headers, body, err := nextMessageHeaderAndBodyFromFrame(frame,
+		frameReadConfig{
+			CheckFrameHeaderCRC: config.CheckFrameBodyCRC,
+			CheckFrameBodyCRC:   config.CheckFrameBodyCRC,
+		})
+	msg := ByteArrayMessage{
+		Headers: *headers,
+		Body:    body,
+	}
+	return &msg, err
+}
+
 func nextMessageHeaderAndBodyFromFrame(r io.Reader, config frameReadConfig) (*MessageHeaders, []byte, error) {
 	frameheader, framebody, err := nextFrame(r, config)
 	if err != nil {
